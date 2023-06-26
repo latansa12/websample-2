@@ -62,9 +62,21 @@ services:
     volumes:
     - ./www_vol:/var/www/html
     command:
-    - /bin/sh
-    - -c
-    - apk update && apk add git && while true;do sleep 1000;done
+      - /bin/sh
+      - -c
+      - |
+        apk update; \
+        apk add git; \
+        git config --global --add safe.directory /var/www/html; \
+        git clone --progress --recursive -v --branch master https://github.com/rm77/web-sample-3.git /var/www/html; \
+        cd /var/www/html; \
+        while true; \
+        do \
+           echo run; \
+           cd /var/www/html; \
+           git pull origin master; \ 
+           sleep 4; \
+        done; 
     networks:
     - app-network
 
