@@ -1,0 +1,64 @@
+version: '3'
+
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - MYSQL_DATABASE=$APP_DB
+      - MYSQL_PASSWORD=$MYSQL_ROOT_PASSWORD
+      - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+      - MYSQL_ROOT_HOST=%
+    command: '--default-authentication-plugin=mysql_native_password'
+    volumes: 
+      - ./dbdata:/var/lib/mysql
+    networks:
+      - app-network
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "$PHPMYADMIN_PORT:80"
+    links:
+      - db
+    env_file: .env
+    environment:
+      - PMA_HOST=db
+      - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+    networks:
+      - app-network
+  phpfpm:
+    depends_on: 
+      - db
+    image: php:7.4-fpm-alpine3.16
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=$MYSQL_ROOT_PASSWORD
+      - DB_NAME=$APP_DB
+    volumes:
+      - ./www_vol:/var/www/html
+    networks:
+      - app-network
+  webserver:
+    depends_on:
+      - phpfpm
+    image: nginx:1.15.12-alpine
+    restart: unless-stopped
+    ports:
+      - "$WEBSERVER_PORT:80"
+    volumes:
+      - ./www_vol:/var/www/html
+      - ./nginx-conf:/etc/nginx/conf.d
+    networks:
+      - app-network
+
+
+volumes:
+  certbot-etc:
+
+networks:
+  app-network:
+    driver: bridge
