@@ -1,0 +1,9 @@
+#!/bin/sh
+sudo apt -y update && sudo apt -y install docker.io vim htop docker-compose && sudo chmod a+rwx /var/run/docker.sock && \
+cd /home/ubuntu && \
+git clone https://github.com/rm77/web-sample-2.git && \
+cd web-sample-2 && \
+sudo docker-compose build  && \
+sudo docker-compose up -d  && \
+docker ps --all && \
+echo installed > /etc/installed
